@@ -63,10 +63,13 @@ public class FlightReader {
             System.out.println("----------------------------------");
 
              */
+
             // round -6 call
             List<FlightInfoDTO> sortedArrivalTimes = getSortedArrivalTimes(flightList);
-            System.out.println("Average flight time (hours): " + sortedArrivalTimes);
+            // System.out.println("Average flight time (hours): " + sortedArrivalTimes);
 
+            // round-7 call
+            getTotalFlightTimeForEachAirline(flightInfoDTOList);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -199,5 +202,15 @@ public class FlightReader {
                         .build())
                 .collect(Collectors.toList());
     }
+
+    public static void getTotalFlightTimeForEachAirline(List<FlightInfoDTO> flightList) {
+        flightList.stream()
+                .filter(flight -> flight.getDuration() != null && flight.getAirline() != null)
+                .collect(Collectors.groupingBy(
+                        FlightInfoDTO::getAirline, // group by airline name
+                        Collectors.summingDouble(flight -> flight.getDuration().toMinutes() / 60.0) // sum hours
+                )).forEach((x,y) -> System.out.println(x+Duration.ofMinutes(y.longValue())));
+    }
+
 
 }
