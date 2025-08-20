@@ -43,11 +43,9 @@ public class FlightReader {
             List<FlightInfoDTO> flightsFukuokaHaneda = getFlightsBetween2Airports(flightList, "Fukuoka", "Haneda Airport");
             // flightsFukuokaHaneda.forEach(System.out::println);
 
-            // round-4 call
-            LocalDateTime oneAM = LocalDateTime.of(LocalDate.now(), LocalTime.of(1, 0));
-            // Call the method
+            // round-4 call: flights leaving before 1 AM
+            LocalTime oneAM = LocalTime.of(1, 0);
             List<FlightInfoDTO> flightsBefore1AM = getFlightsLeavingBefore1AM(flightList, oneAM);
-            // Print results
             flightsBefore1AM.forEach(System.out::println);
 
         } catch (IOException e) {
@@ -135,32 +133,20 @@ public class FlightReader {
                 .collect(Collectors.toList());
     }
 
-    public static List<FlightInfoDTO> getFlightsLeavingBefore1AM(List<FlightDTO> flightList, LocalDateTime time) {
-        List<FlightInfoDTO> flightInfoList = flightList.stream()
+
+    public static List<FlightInfoDTO> getFlightsLeavingBefore1AM(List<FlightDTO> flightList, LocalTime time) {
+        return flightList.stream()
                 .filter(flight -> flight.getDeparture() != null
-                        && flight.getArrival() != null
-                        && flight.getDeparture().getScheduled() != null
-                        && flight.getArrival().getScheduled() != null
-                        && flight.getAirline() != null
-                        && flight.getFlight() != null)
-                .map(flight -> {
-                    LocalDateTime departure = flight.getDeparture().getScheduled();
-                    LocalDateTime arrival = flight.getArrival().getScheduled();
-                    Duration duration = Duration.between(departure, arrival);
-
-                    return FlightInfoDTO.builder()
-                            .name(flight.getFlight().getNumber())
-                            .iata(flight.getFlight().getIata())
-                            .airline(flight.getAirline().getName())
-                            .duration(duration)
-                            .departure(departure)
-                            .arrival(arrival)
-                            .origin(flight.getDeparture().getAirport())
-                            .destination(flight.getArrival().getAirport())
-                            .build();
-                })
-                .toList(); // or collect(Collectors.toList()) if using Java <16
-
-        return flightInfoList;
+                        && flight.getDeparture().getScheduled() != null)
+                .filter(flight -> flight.getDeparture().getScheduled().toLocalTime().isBefore(time))
+                .map(flight -> FlightInfoDTO.builder()
+                        .name(flight.getFlight().getNumber())
+                        .iata(flight.getFlight().getIata())
+                        .airline(flight.getAirline().getName())
+                        .departure(flight.getDeparture().getScheduled())
+                        .origin(flight.getDeparture().getAirport())
+                        .build())
+                .collect(Collectors.toList());
     }
+
 }
