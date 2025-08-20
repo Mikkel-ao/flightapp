@@ -8,7 +8,9 @@ import dk.cphbusiness.utils.Utils;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,13 @@ public class FlightReader {
             // round-3 call
             List<FlightInfoDTO> flightsFukuokaHaneda = getFlightsBetween2Airports(flightList, "Fukuoka", "Haneda Airport");
             // flightsFukuokaHaneda.forEach(System.out::println);
+
+            // round-4 call
+            LocalDateTime oneAM = LocalDateTime.of(LocalDate.now(), LocalTime.of(1, 0));
+            // Call the method
+            List<FlightInfoDTO> flightsBefore1AM = getFlightsLeavingBefore1AM(flightList, oneAM);
+            // Print results
+            flightsBefore1AM.forEach(System.out::println);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -124,5 +133,34 @@ public class FlightReader {
                         .destination(flight.getArrival().getAirport())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    public static List<FlightInfoDTO> getFlightsLeavingBefore1AM(List<FlightDTO> flightList, LocalDateTime time) {
+        List<FlightInfoDTO> flightInfoList = flightList.stream()
+                .filter(flight -> flight.getDeparture() != null
+                        && flight.getArrival() != null
+                        && flight.getDeparture().getScheduled() != null
+                        && flight.getArrival().getScheduled() != null
+                        && flight.getAirline() != null
+                        && flight.getFlight() != null)
+                .map(flight -> {
+                    LocalDateTime departure = flight.getDeparture().getScheduled();
+                    LocalDateTime arrival = flight.getArrival().getScheduled();
+                    Duration duration = Duration.between(departure, arrival);
+
+                    return FlightInfoDTO.builder()
+                            .name(flight.getFlight().getNumber())
+                            .iata(flight.getFlight().getIata())
+                            .airline(flight.getAirline().getName())
+                            .duration(duration)
+                            .departure(departure)
+                            .arrival(arrival)
+                            .origin(flight.getDeparture().getAirport())
+                            .destination(flight.getArrival().getAirport())
+                            .build();
+                })
+                .toList(); // or collect(Collectors.toList()) if using Java <16
+
+        return flightInfoList;
     }
 }
