@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Purpose:
@@ -36,6 +37,9 @@ public class FlightReader {
             // round-2 call
             double averageLufthansaFlightDuration = getAverageFlightTimeForAirline(flightList, "Lufthansa");
             System.out.println("Average Lufthansa flight duration (hours): " + averageLufthansaFlightDuration);
+            // round-3 call
+            List<FlightInfoDTO> flightsFukuokaHaneda = getFlightsBetween2Airports(flightList, "Fukuoka", "Haneda Airport");
+            // flightsFukuokaHaneda.forEach(System.out::println);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -103,4 +107,22 @@ public class FlightReader {
         return result;
     }
 
+    public static List<FlightInfoDTO> getFlightsBetween2Airports(List<FlightDTO> flightList, String airport1, String airport2) {
+        return flightList.stream()
+                .filter(n -> n.getDeparture() != null && n.getArrival() != null)
+                .filter(n -> {
+                    String departure = n.getDeparture().getAirport();
+                    String arrival = n.getArrival().getAirport();
+                    return (airport1.equalsIgnoreCase(departure) && airport2.equalsIgnoreCase(arrival)) ||
+                            (airport2.equalsIgnoreCase(departure) && airport1.equalsIgnoreCase(arrival));
+                })
+                .map(flight -> FlightInfoDTO.builder()
+                        .airline(flight.getAirline().getName())
+                        .name(flight.getFlight().getNumber())
+                        .iata(flight.getFlight().getIata())
+                        .origin(flight.getDeparture().getAirport())
+                        .destination(flight.getArrival().getAirport())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }
