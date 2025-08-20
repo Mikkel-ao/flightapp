@@ -18,11 +18,22 @@ import java.util.*;
  */
 public class FlightReader {
 
+    public FlightReader() throws IOException {
+    }
+
     public static void main(String[] args) {
         try {
+
             List<FlightDTO> flightList = getFlightsFromFile("flights.json");
             List<FlightInfoDTO> flightInfoDTOList = getFlightInfoDetails(flightList);
+            /*
             flightInfoDTOList.forEach(System.out::println);
+            */
+
+            // round-1 call
+            double totalLufthansaTime = getTotalFlightTimeLufthansa(flightList);
+            System.out.println("Total Lufthansa flight time (hours): " + totalLufthansaTime);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -62,6 +73,19 @@ public class FlightReader {
             })
         .toList();
         return flightInfoList;
+    }
+
+
+    public static double getTotalFlightTimeLufthansa(List<FlightDTO> flightList) {
+        double result = flightList.stream()
+                .filter(n -> n.getAirline() !=null && "Lufthansa".equalsIgnoreCase(n.getAirline().getName()))
+                .mapToDouble(flight -> {
+                    LocalDateTime departure = flight.getDeparture().getScheduled();
+                    LocalDateTime arrival = flight.getArrival().getScheduled();
+                    return Duration.between(departure, arrival).toMinutes() / 60;
+                })
+                .sum();
+        return result;
     }
 
 }
