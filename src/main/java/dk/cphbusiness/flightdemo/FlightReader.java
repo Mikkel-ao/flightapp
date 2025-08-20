@@ -7,6 +7,7 @@ import dk.cphbusiness.utils.Utils;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.sql.SQLOutput;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,12 +34,17 @@ public class FlightReader {
             flightInfoDTOList.forEach(System.out::println);
             */
 
+            /*
             // round-1 call
             double totalLufthansaTime = getTotalFlightTimeForAirline(flightList, "Lufthansa");
             System.out.println("Total Lufthansa flight time (hours): " + totalLufthansaTime);
+            System.out.println("----------------------------------");
+
             // round-2 call
             double averageLufthansaFlightDuration = getAverageFlightTimeForAirline(flightList, "Lufthansa");
             System.out.println("Average Lufthansa flight duration (hours): " + averageLufthansaFlightDuration);
+            System.out.println("----------------------------------");
+
             // round-3 call
             List<FlightInfoDTO> flightsFukuokaHaneda = getFlightsBetween2Airports(flightList, "Fukuoka", "Haneda Airport");
             // flightsFukuokaHaneda.forEach(System.out::println);
@@ -47,10 +53,20 @@ public class FlightReader {
             LocalTime oneAM = LocalTime.of(1, 0);
             List<FlightInfoDTO> flightsBefore1AM = getFlightsLeavingBefore1AM(flightList, oneAM);
             flightsBefore1AM.forEach(System.out::println);
+            System.out.println("----------------------------------");
+
 
             // round-5 call
             double averageFlightTime = getAverageFlightTime(flightList);
             System.out.println("Average flight time (hours): " + averageFlightTime);
+
+            System.out.println("----------------------------------");
+
+             */
+            // round -6 call
+            List<FlightInfoDTO> sortedArrivalTimes = getSortedArrivalTimes(flightList);
+            System.out.println("Average flight time (hours): " + sortedArrivalTimes);
+
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -163,6 +179,25 @@ public class FlightReader {
                 })
                 .average().orElse(0.0);
         return result;
+    }
+
+
+    public static List<FlightInfoDTO> getSortedArrivalTimes(List<FlightDTO> flightList) {
+        return flightList.stream()
+                // Make sure arrival exists
+                .filter(flight -> flight.getArrival() != null && flight.getArrival().getScheduled() != null)
+                // Sort by arrival time
+                .sorted((f1, f2) -> f1.getArrival().getScheduled().compareTo(f2.getArrival().getScheduled()))
+                .map(flight -> FlightInfoDTO.builder()
+                        .name(flight.getFlight().getNumber())
+                        .iata(flight.getFlight().getIata())
+                        .airline(flight.getAirline().getName())
+                        .departure(flight.getDeparture().getScheduled())
+                        .arrival(flight.getArrival().getScheduled())
+                        .origin(flight.getDeparture().getAirport())
+                        .destination(flight.getArrival().getAirport())
+                        .build())
+                .collect(Collectors.toList());
     }
 
 }
