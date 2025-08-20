@@ -48,6 +48,10 @@ public class FlightReader {
             List<FlightInfoDTO> flightsBefore1AM = getFlightsLeavingBefore1AM(flightList, oneAM);
             flightsBefore1AM.forEach(System.out::println);
 
+            // round-5 call
+            double averageFlightTime = getAverageFlightTime(flightList);
+            System.out.println("Average flight time (hours): " + averageFlightTime);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -147,6 +151,18 @@ public class FlightReader {
                         .origin(flight.getDeparture().getAirport())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    public static double getAverageFlightTime(List<FlightDTO> flightList) {
+        double result = flightList.stream()
+                .filter(n -> n.getDeparture() != null && n.getArrival() != null)
+                .mapToDouble(flight -> {
+                    LocalDateTime departure = flight.getDeparture().getScheduled();
+                    LocalDateTime arrival = flight.getArrival().getScheduled();
+                    return Duration.between(departure, arrival).toMinutes() / 60.0;
+                })
+                .average().orElse(0.0);
+        return result;
     }
 
 }
