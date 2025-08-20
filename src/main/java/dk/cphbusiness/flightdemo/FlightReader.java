@@ -31,7 +31,7 @@ public class FlightReader {
             */
 
             // round-1 call
-            double totalLufthansaTime = getTotalFlightTimeLufthansa(flightList, "Lufthansa");
+            double totalLufthansaTime = getTotalFlightTimeForAirline(flightList, "Lufthansa");
             System.out.println("Total Lufthansa flight time (hours): " + totalLufthansaTime);
 
         } catch (IOException e) {
@@ -76,7 +76,7 @@ public class FlightReader {
     }
 
 
-    public static double getTotalFlightTimeLufthansa(List<FlightDTO> flightList, String airlineName) {
+    public static double getTotalFlightTimeForAirline(List<FlightDTO> flightList, String airlineName) {
         double result = flightList.stream()
                 .filter(n -> n.getAirline() !=null && airlineName.equalsIgnoreCase(n.getAirline().getName()))
                 .mapToDouble(flight -> {
