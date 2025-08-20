@@ -33,6 +33,9 @@ public class FlightReader {
             // round-1 call
             double totalLufthansaTime = getTotalFlightTimeForAirline(flightList, "Lufthansa");
             System.out.println("Total Lufthansa flight time (hours): " + totalLufthansaTime);
+            // round-2 call
+            double averageLufthansaFlightDuration = getAverageFlightTimeForAirline(flightList, "Lufthansa");
+            System.out.println("Average Lufthansa flight duration (hours): " + averageLufthansaFlightDuration);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -85,6 +88,18 @@ public class FlightReader {
                     return Duration.between(departure, arrival).toMinutes() / 60;
                 })
                 .sum();
+        return result;
+    }
+
+    public static double getAverageFlightTimeForAirline(List<FlightDTO> flightList, String airlineName) {
+        double result = flightList.stream()
+                .filter(n -> n.getAirline() !=null && airlineName.equalsIgnoreCase(n.getAirline().getName()))
+                .mapToDouble(flight -> {
+                    LocalDateTime departure = flight.getDeparture().getScheduled();
+                    LocalDateTime arrival = flight.getArrival().getScheduled();
+                    return Duration.between(departure, arrival).toMinutes() / 60.0;
+                })
+                .average().orElse(0.0);
         return result;
     }
 
